@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"> 
+        <title>RecSys Bootcamp</title>
+                <style>
+        .box{
+                  display: inline-block;
+                  width: 400px;
+                  min-height: 50px;
+                  background-color: white;
+                  height: 200px;
+                  margin: 20px;
+        }
+        </style>
+    </head>
+    <body>
+     <form id="user_form" action="/getData" method="get">
+        <label>
+            user_id:
+            <input type = "text" name="user_id" name = "submit_button">
+        </label>
+        <input type="submit" value = "submit" ></input>
+        
+    </form>
+   <p id="start"></p>
+   <p id="demo"></p>
+       
+
+    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"> </script>
+        
+    <script>
+        const Http = new XMLHttpRequest();
+        function fetchData(query){
+            start = new Date();
+
+            Http.open("GET", query);
+            Http.send();
+            Http.onreadystatechange=(e)=> {
+                if (Http.readyState === 4 && Http.status === 200) {
+                    end = new Date();
+                    console.log( end-start);
+                    console.log(start);
+                    console.log(end);
+
+                    console.log("=======ENtterd++++++");
+                    var data = Http.responseText;
+                    //console.log(data);
+                    data = data.replace(/'/g, '"'); // Because, for JSON object " " are needed than ' '.
+                    data = data.replace(/u"/g, '"');
+
+                    data = JSON.parse(data);
+                    console.log(data);
+                    var itr;
+                    for (itr = 0; itr < data.length; itr++) {
+                        var $newDiv = $("<div>");
+                        $newDiv.addClass("box");
+                        var $img = $("<img>");
+                        var link = urlPhotos + data[itr]["id"] + '_1.jpg';
+                        $img.width(100);
+                        $img.attr("src", link);
+
+                        var $name = "<br>Name: "+data[itr]["name"];
+                        var $price = "<br>Price: "+data[itr]["price"]+" Yen";
+                        var $item_condition = "<br>Item_condition: "+data[itr]["item_condition"];
+                        var $likes = "<br>Likes: "+data[itr]["num_likes"];
+
+                        $newDiv.append($img, $name,$price,$item_condition, $likes);
+                        $newDiv.appendTo("body");
+
+
+                    }
+                }
+                }
+            }
+    </script>
+    
+    <script>
+    var pageCounter = 0;
+     var urlPhotos = 'https://static-mercari-jp-imgtr2.akamaized.net/item/detail/orig/photos/';
+      $("#user_form").on("submit", function(event) {
+        event.preventDefault();
+       $("#start").nextAll().remove();
+        var $user_id = $(this).find("[name=user_id]"); // scoped
+        var user_id = $user_id.val();
+
+        // Check if user_id is valid, else alert user saying it is incorrect format, 9 digits have to be present for user_id
+        if((''+user_id).length == 9){
+        console.log('before entereing');
+
+        const url='http://localhost:8080/getData?userid='+user_id+'&page='+pageCounter.toString();
+        console.log(url);
+          fetchData(url);
+        }
+        else{
+            alert("Your input is wrong, user id must be 9 digit length integer")
+        }
+
+        // If user scrolls down, get the new data from database
+        $(window).scroll(function (event) {
+                    // If user has scrolled the page, then we need to get recommendations.
+                   if($(window).scrollTop() + $(window).height() == $(document).height()) {
+                    //alert("bottom!");
+                var scroll = $(window).scrollTop();
+                console.log(scroll);
+                       pageCounter = pageCounter + 1;
+                       const scrollUrl='http://localhost:8080/getData?userid='+user_id+'&page='+pageCounter.toString();
+                       fetchData(scrollUrl)
+                   }
+
+                });
+
+
+
+
+   });
+
+
+
+
+    </script>
+
+   <script>
+  
+  
+   </script>
+
+
+    </body>
+</html>
